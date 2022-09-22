@@ -1,0 +1,215 @@
+Source: sundials
+Maintainer: Debian Science Team <debian-science-maintainers@lists.alioth.debian.org>
+Uploaders: Dima Kogan <dkogan@debian.org>,
+           James Tocknell <aragilar@gmail.com>,
+           Anton Gladky <gladk@debian.org>
+Section: libs
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               pkg-config,
+               chrpath,
+               cmake,
+               python3,
+               gfortran,
+               mpi-default-dev,
+               libblas-dev | libblas.so,
+               liblapack-dev | liblapack.so,
+               petsc-dev,
+               libsuitesparse-dev,
+               libhypre-dev (>= 2.15.1-1exp1~)
+Standards-Version: 4.5.1
+Vcs-Browser: https://salsa.debian.org/science-team/sundials
+Vcs-Git: https://salsa.debian.org/science-team/sundials.git
+Homepage: https://www.llnl.gov/CASC/sundials/
+Rules-Requires-Root: no
+
+Package: libsundials-arkode3
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: differential equation solver (SUNDIALS library)
+ This package contains the library for differential equation (ODE) system
+ solvers from SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers). ARKODE is a solver for multi-rate ODE systems (initial value
+ problems) given in explicit form M*dy/dt = f(t,y)
+
+Package: libsundials-cvode4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: ordinary differential equation solver (SUNDIALS library)
+ This package contains the library for ordinary differential equation (ODE)
+ system solvers from SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic
+ equation Solvers). CVODE is a solver for stiff and nonstiff ODE systems
+ (initial value problem) given in explicit form dy/dt = f(t,y).
+
+Package: libsundials-cvodes4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: ODE solver with sensistivity analysis (SUNDIALS library)
+ This package contains the library for ordinary differential equation (ODE)
+ system solver with sensistivity analysis capabilities from SUNDIALS (SUite of
+ Nonlinear and DIfferential/ALgebraic equation Solvers). CVODES is a solver for
+ stiff and nonstiff ODE systems (initial value problem) given in explicit form
+ y' = f(t,y,p) with sensitivity analysis capabilities (both forward and adjoint
+ modes).
+
+Package: libsundials-ida4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: differential-algebraic system solver (SUNDIALS library)
+ This package contains the library for differential-algebraic system (IDA)
+ solver from SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers).
+
+Package: libsundials-idas3
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: IDA solver with sensitivity capabilities (SUNDIALS library)
+ This package contains the library for differential-algebraic system with
+ Sensitivity capabilities (IDAS) solver from SUNDIALS (SUite of Nonlinear and
+ DIfferential/ALgebraic equation Solvers).
+
+Package: libsundials-kinsol4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: KINSOL solver (SUNDIALS library)
+ This package contain the library for KINSOL (nonlinear algebraic systems)
+ system solver from SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic
+ equation Solvers).
+
+Package: libsundials-nvecserial4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Non-parallel vector operations library (SUNDIALS library)
+ This package provides implementations for all vector operations
+ defined by the generic NVECTOR module in the table of operations for
+ SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers).
+ .
+ This package contains the serial flavor of the library.
+
+Package: libsundials-nvecparallel-mpi4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         mpi-default-bin
+Description: MPI vector operations library (SUNDIALS library)
+ This package provides implementations for all vector operations
+ defined by the generic NVECTOR module in the table of operations for
+ SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers).
+ .
+ This package contains the MPI parallel flavor of the library.
+
+Package: libsundials-nvecparallel-pthread4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Pthread vector operations library (SUNDIALS library)
+ This package provides implementations for all vector operations
+ defined by the generic NVECTOR module in the table of operations for
+ SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers).
+ .
+ This package contains the pthread-based parallel flavor of the library.
+
+Package: libsundials-nvecparallel-openmp4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: OpenMP vector operations library (SUNDIALS library)
+ This package provides implementations for all vector operations
+ defined by the generic NVECTOR module in the table of operations for
+ SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers).
+ .
+ This package contains the OpenMP-based parallel flavor of the library.
+
+Package: libsundials-nvecparallel-hypre4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: HYPRE vector operations library (SUNDIALS library)
+ This package provides implementations for all vector operations
+ defined by the generic NVECTOR module in the table of operations for
+ SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers).
+ .
+ This package contains the HYPRE-based parallel flavor of the library.
+
+Package: libsundials-nvecparallel-petsc4
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: PETSc vector operations library (SUNDIALS library)
+ This package provides implementations for all vector operations
+ defined by the generic NVECTOR module in the table of operations for
+ SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers).
+ .
+ This package contains the PETSc-based parallel flavor of the library.
+
+Package: libsundials-sunlinsol2
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: differential equation solver (SUNDIALS library)
+ Auxiliary solvers used by the SUNDIALS library.
+
+Package: libsundials-sunmatrix2
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: differential equation solver (SUNDIALS library)
+ Auxiliary solvers used by the SUNDIALS library.
+
+Package: libsundials-dev
+Architecture: any
+Section: libdevel
+Depends: libsundials-arkode3               (= ${binary:Version}),
+         libsundials-cvode4                (= ${binary:Version}),
+         libsundials-cvodes4               (= ${binary:Version}),
+         libsundials-ida4                  (= ${binary:Version}),
+         libsundials-idas3                 (= ${binary:Version}),
+         libsundials-kinsol4               (= ${binary:Version}),
+         libsundials-nvecserial4           (= ${binary:Version}),
+         libsundials-nvecparallel-mpi4     (= ${binary:Version}),
+         libsundials-nvecparallel-pthread4 (= ${binary:Version}),
+         libsundials-nvecparallel-openmp4  (= ${binary:Version}),
+         libsundials-nvecparallel-hypre4   (= ${binary:Version}),
+         libsundials-nvecparallel-petsc4   (= ${binary:Version}),
+         libsundials-sunlinsol2            (= ${binary:Version}),
+         libsundials-sunmatrix2            (= ${binary:Version}),
+         cmake,
+         mpi-default-dev,
+         libhypre-dev,
+         petsc-dev,
+         gfortran,
+         pkg-config,
+         ${misc:Depends}
+Breaks: libsundials-serial-dev
+Replaces: libsundials-serial-dev
+Description: Package providing everything for SUNDIALS dev work
+ This package contains all development files necessary to build applications
+ using SUNDIALS (SUite of Nonlinear and DIfferential/ALgebraic equation
+ Solvers). All examples and documentation links live in this package as well.

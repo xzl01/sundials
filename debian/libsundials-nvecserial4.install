@@ -1,0 +1,3 @@
+usr/lib/*/libsundials_nvecserial.so.*
+usr/lib/*/libsundials_fnvecserial.so.*
+usr/lib/*/libsundials_nvecmany*.so.*

@@ -1,0 +1,83 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow
+#export CTEST_OUTPUT_ON_FAILURE=1
+
+include /usr/share/dpkg/architecture.mk
+
+HYPRE_VERSION=$(shell dpkg -s libhypre-dev | grep Version | awk '{print $$2}')
+HYPRE_LIB=$(shell if dpkg --compare-versions $(HYPRE_VERSION) lt 2.20.0-1exp3~ ; then echo HYPRE_core; else echo HYPRE; fi)
+
+extra_flags += \
+	-DCMAKE_Fortran_COMPILER=gfortran \
+	-DBUILD_SHARED_LIBS:BOOL=ON \
+	-DBUILD_STATIC_LIBS:BOOL=ON \
+	-DBUILD_FORTRAN77_INTERFACE:BOOL=ON \
+	-DENABLE_MPI:BOOL=ON \
+	\
+	-DENABLE_LAPACK:BOOL=OFF\
+	\
+	-DEXAMPLES_ENABLE_C:BOOL=ON \
+	-DEXAMPLES_ENABLE_CXX:BOOL=ON \
+	-DEXAMPLES_ENABLE_F77:BOOL=ON \
+	-DEXAMPLES_INSTALL:BOOL=ON \
+	\
+	-DENABLE_OPENMP:BOOL=ON \
+	-DENABLE_PTHREAD:BOOL=ON \
+	\
+	-DENABLE_KLU:BOOL=ON \
+	-DKLU_INCLUDE_DIR=/usr/include/suitesparse \
+	-DKLU_LIBRARY_DIR=/usr/lib/$(DEB_HOST_MULTIARCH) \
+	\
+	-DENABLE_PETSC:BOOL=ON \
+	\
+	-DENABLE_HYPRE:BOOL=ON \
+	-DHYPRE_INCLUDE_DIR=/usr/include/hypre \
+	-DHYPRE_LIBRARY=-l$(HYPRE_LIB) \
+	\
+	-DCMAKE_C_FLAGS=-fcommon
+
+
+
+# Debian doesn't ship superlu-mt currently, so I turn off this support
+extra_flags += -DENABLE_SUPERLUMT:BOOL=OFF
+
+
+BUILDDIR = $(CURDIR)/debian/build
+
+
+%:
+	dh $@ --buildsystem=cmake  --builddirectory=$(BUILDDIR)
+
+override_dh_auto_configure:
+	dh_auto_configure -- $(extra_flags)
+
+# Hack from https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=839387
+# The OpenMPI variable prevents FTBFS when there are not enough CPUs (see #910352 and #849974)
+override_dh_auto_test:
+	$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),true,(cd debian/build; OMPI_MCA_rmaps_base_oversubscribe=1 ../nofakeroot ctest))
+
+override_dh_auto_install:
+	dh_auto_install
+# I strip out all the RPATH/RUNPATH tags from my shared objects. These all point
+# to libraries that actually live in standard locations, so the tags are not
+# needed
+	find debian/tmp/ -name '*.so' -o -name '*.so.*' -exec chrpath -d '{}' \;
+
+# Strip extra license file
+	rm debian/tmp/usr/include/sundials/LICENSE
+
+# We copy READMEs by hand because they need to be renamed
+override_dh_installdocs:
+	dh_installdocs
+	mkdir -p debian/libsundials-dev/usr/share/doc/libsundials-dev
+	for module in arkode cvode cvodes ida idas kinsol; do \
+		cp src/$${module}/README.md debian/libsundials-dev/usr/share/doc/libsundials-dev/README.$${module}.md; \
+	done
+
+override_dh_compress:
+	dh_compress -Xexamples/
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf $(BUILDDIR)

@@ -1,0 +1,2 @@
+# We actually check for DEB_BUILD_OPTIONS, but lintian does not see it
+sundials source: override_dh_auto_test-does-not-check-DEB_BUILD_OPTIONS (line *)

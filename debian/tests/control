@@ -1,0 +1,2 @@
+Tests: arkode
+Depends: build-essential, libsundials-dev

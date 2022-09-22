@@ -1,0 +1,2 @@
+libsundials-nvecparallel-mpi4 binary: package-name-doesnt-match-sonames
+libsundials-nvecparallel-mpi4 binary: library-not-linked-against-libc

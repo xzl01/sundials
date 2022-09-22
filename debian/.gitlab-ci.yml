@@ -1,0 +1,12 @@
+include:
+ - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/salsa-ci.yml
+ - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/pipeline-jobs.yml
+
+reprotest:
+  allow_failure: true
+
+blhc:
+  allow_failure: true
+
+piuparts:
+  allow_failure: true

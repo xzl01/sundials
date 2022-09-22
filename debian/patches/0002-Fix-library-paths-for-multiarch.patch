@@ -1,0 +1,23 @@
+From: James Tocknell <aragilar@gmail.com>
+Date: Wed, 14 Oct 2015 01:02:58 +1100
+Subject: Fix library paths for multiarch
+
+---
+ CMakeLists.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+Index: sundials-5.8.0/CMakeLists.txt
+===================================================================
+--- sundials-5.8.0.orig/CMakeLists.txt
++++ sundials-5.8.0/CMakeLists.txt
+@@ -37,6 +37,10 @@ include(SundialsCMakeMacros)
+ include(FindPackageHandleStandardArgs)
+ include(CMakePrintHelpers)
+ 
++# Get correct build paths automatically
++
++INCLUDE(GNUInstallDirs)
++
+ # Set some variables with info on the SUNDIALS project
+ set(PACKAGE_BUGREPORT "sundials-users@llnl.gov")
+ set(PACKAGE_NAME "SUNDIALS")

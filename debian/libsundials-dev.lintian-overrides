@@ -1,0 +1,3 @@
+library-not-linked-against-libc
+lacks-ldconfig-trigger
+custom-library-search-path

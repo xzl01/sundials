@@ -1,0 +1,39 @@
+The libsundials-dev package contains everything required for doing dev work with
+ANY sundials component.
+
+The examples/ directory contains sample programs, and each one can be built with
+
+  cmake . && make
+
+The documentation is available from the upstream website:
+
+  https://computation.llnl.gov/projects/sundials/sundials-software
+
+Each solver has the "guide", which is the general documentation, and a separate
+document explaining the examples. The specific files are
+
+CVODE
+  https://computation.llnl.gov/sites/default/files/public/cv_guide.pdf
+  https://computation.llnl.gov/sites/default/files/public/cv_examples.pdf
+
+CVODES
+  https://computation.llnl.gov/sites/default/files/public/cvs_guide.pdf
+  https://computation.llnl.gov/sites/default/files/public/cvs_examples.pdf
+
+ARKODE
+  https://computation.llnl.gov/sites/default/files/public/ark_guide.pdf
+  https://computation.llnl.gov/sites/default/files/public/ark_examples.pdf
+
+IDA
+  https://computation.llnl.gov/sites/default/files/public/ida_guide.pdf
+  https://computation.llnl.gov/sites/default/files/public/ida_examples.pdf
+
+IDAS
+  https://computation.llnl.gov/sites/default/files/public/idas_guide.pdf
+  https://computation.llnl.gov/sites/default/files/public/idas_examples.pdf
+
+KINSOL
+  https://computation.llnl.gov/sites/default/files/public/kin_guide.pdf
+  https://computation.llnl.gov/sites/default/files/public/kin_examples.pdf
+
+ -- Dima Kogan <dkogan@debian.org>, Mon, 29 May 2017 12:00:08 -0700

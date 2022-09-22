@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# hacky-yet-functional script by Christian Seiler <christian@iwakd.de> from
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=839387
+
+
+filter_fakeroot() {
+  oldifs="$IFS"
+  IFS=":"
+  s=
+  set -- $LD_PRELOAD
+  for lib in "$@" ; do
+    if [ x"$lib" = x"${lib%libfakeroot-*}" ] ; then
+      printf "%s%s" "$s" "$lib"
+      s=:
+    fi
+  done
+  IFS="$OLDIFS"
+}
+
+export LD_PRELOAD="$(filter_fakeroot)"
+exec "$@"

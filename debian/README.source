@@ -1,0 +1,6 @@
+The sources have been repacked to remove the binary .pdf documentation that was
+lacking sources. These binaries can be downloaded from the upstream website:
+
+  http://computation.llnl.gov/projects/sundials/sundials-software
+
+ -- Dima Kogan <dkogan@debian.org>, Mon, 20 Feb 2017 15:15:45 -0800
