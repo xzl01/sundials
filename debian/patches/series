@@ -1,5 +1,5 @@
 0002-Fix-library-paths-for-multiarch.patch
-0005-Use-python3-rather-than-python-2.patch
 0003-PETSc-is-now-findable-by-CMake.patch
 disable_test
+fix_test.patch
 add_some_more_headers.patch

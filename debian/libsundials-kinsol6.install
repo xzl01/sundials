@@ -1,0 +1,2 @@
+usr/lib/*/libsundials_kinsol.so.*
+usr/lib/*/libsundials_fkinsol_mod.so.*

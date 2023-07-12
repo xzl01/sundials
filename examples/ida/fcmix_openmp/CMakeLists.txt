@@ -2,7 +2,7 @@
 # Programmer(s): Radu Serban @ LLNL
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -29,7 +29,7 @@ set(FNVECS_LIB sundials_fnvecopenmp)
 set(FIDA_LIB sundials_fida${_STATIC_LIB_SUFFIX})
 
 # Set-up linker flags and link libraries
-set(SUNDIALS_LIBS ${FIDA_LIB} ${FNVECS_LIB} ${EXTRA_LINK_LIBS})
+set(SUNDIALS_LIBS ${FIDA_LIB} ${FNVECS_LIB} ${EXE_EXTRA_LINK_LIBS})
 
 # Add the build and install targets for each example
 foreach(example_tuple ${FIDA_examples})

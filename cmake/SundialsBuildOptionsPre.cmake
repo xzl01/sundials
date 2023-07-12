@@ -2,7 +2,7 @@
 # Programmer(s): Cody J. Balos @ LLNL
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -58,21 +58,50 @@ set(DOCSTR "Integer type to use for indices in SUNDIALS")
 sundials_option(SUNDIALS_INDEX_TYPE STRING "${DOCSTR}" "" ADVANCED)
 
 # ---------------------------------------------------------------
-# Option to specify monitoring
+# Option to enable monitoring
 # ---------------------------------------------------------------
 
 set(DOCSTR "Build with simulation monitoring capabilities enabled")
 sundials_option(SUNDIALS_BUILD_WITH_MONITORING BOOL "${DOCSTR}" OFF)
 
 # ---------------------------------------------------------------
-# Option to use the generic math libraries (UNIX only)
+# Option to enable profiling
 # ---------------------------------------------------------------
 
-if(UNIX)
-  sundials_option(USE_GENERIC_MATH BOOL "Use generic (std-c) math libraries" ON)
-  # all executables will be linked against -lm
-  set(EXTRA_LINK_LIBS -lm)
+set(DOCSTR "Build with simulation profiling capabilities enabled")
+sundials_option(SUNDIALS_BUILD_WITH_PROFILING BOOL "${DOCSTR}" OFF)
+
+# ---------------------------------------------------------------
+# Option to enable logging
+# ---------------------------------------------------------------
+
+set(DOCSTR "Build with logging capabilities enabled (0 = no logging, 1 = errors, 2 = +warnings, 3 = +info, 4 = +debug, 5 = +extras")
+sundials_option(SUNDIALS_LOGGING_LEVEL STRING "${DOCSTR}" 0
+                OPTIONS "0;1;2;3;4;5")
+
+if(SUNDIALS_LOGGING_LEVEL GREATER_EQUAL 1)
+  message(STATUS "SUNDIALS logging level set to ${SUNDIALS_LOGGING_LEVEL}")
+  message(WARNING "SUNDIALS built with logging turned on, performance may be affected.")
 endif()
+
+set(DOCSTR "Build SUNDIALS logging with MPI support")
+sundials_option(SUNDIALS_LOGGING_ENABLE_MPI BOOL "${DOCSTR}" "OFF"
+                DEPENDS_ON ENABLE_MPI)
+
+# ---------------------------------------------------------------
+# Option to use the generic math libraries
+# ---------------------------------------------------------------
+
+# We still provide USE_GENERIC_MATH for backwards compatibility
+# We also provide it for non-unix systems, but with different defaults,
+# in order to present a uniform CMake interface.
+if(UNIX)
+  sundials_option(SUNDIALS_MATH_LIBRARY PATH "Which math library (e.g., libm) to link to" "-lm" ADVANCED)
+else()
+  sundials_option(SUNDIALS_MATH_LIBRARY PATH "Which math library (e.g., libm) to link to" "" ADVANCED)
+endif()
+# all executables will be linked against the math library
+set(EXE_EXTRA_LINK_LIBS "${SUNDIALS_MATH_LIBRARY}")
 
 # ---------------------------------------------------------------
 # Options to enable static and/or shared libraries
@@ -139,21 +168,6 @@ endif()
 # Options to enable Fortran interfaces.
 # ---------------------------------------------------------------
 
-# Fortran interface is disabled by default
-set(DOCSTR "Enable Fortran 77 interfaces")
-sundials_option(BUILD_FORTRAN77_INTERFACE BOOL "${DOCSTR}" OFF)
-
-# Check that at least one solver with a Fortran 77 interface is built
-if(BUILD_FORTRAN77_INTERFACE)
-  if(NOT (BUILD_ARKODE OR BUILD_CVODE OR BUILD_IDA OR BUILD_KINSOL))
-    print_warning("Enabled packages do not support Fortran 77 interface" "Disabling F77 interface")
-    set(BUILD_FORTRAN77_INTERFACE OFF CACHE BOOL "${DOCSTR}" FORCE)
-  elseif(NOT BUILD_STATIC_LIBS)
-    print_error("Fortran 77 interfaces can only be built as static libraries" "Disabling F77 interface")
-    set(BUILD_FORTRAN77_INTERFACE OFF CACHE BOOL "${DOCSTR}" FORCE)
-  endif()
-endif()
-
 # Fortran 2003 interface is disabled by default
 set(DOCSTR "Enable Fortran 2003 modules")
 sundials_option(BUILD_FORTRAN_MODULE_INTERFACE BOOL "${DOCSTR}" OFF)
@@ -174,6 +188,93 @@ if(BUILD_FORTRAN_MODULE_INTERFACE)
   sundials_option(Fortran_INSTALL_MODDIR STRING "${DOCSTR}" "fortran")
 endif()
 
+# ---------------------------------------------------------------
+# Options for benchmark suite
+# ---------------------------------------------------------------
+
+sundials_option(BUILD_BENCHMARKS BOOL "Build the SUNDIALS benchmark suite" OFF)
+
+# ---------------------------------------------------------------
+# Options for CMake config installation
+# ---------------------------------------------------------------
+
 set(DOCSTR "Path to SUNDIALS cmake files")
 sundials_option(SUNDIALS_INSTALL_CMAKEDIR STRING "${DOCSTR}"
                 "${CMAKE_INSTALL_LIBDIR}/cmake/sundials")
+
+# ---------------------------------------------------------------
+# Options to enable compiler warnings, address sanitizer
+# ---------------------------------------------------------------
+
+sundials_option(ENABLE_ALL_WARNINGS BOOL
+  "Enable all compiler warnings" OFF ADVANCED)
+
+sundials_option(ENABLE_WARNINGS_AS_ERRORS BOOL
+  "Enable compiler warnings as errors" OFF ADVANCED)
+
+sundials_option(ENABLE_ADDRESS_SANITIZER BOOL
+  "Enable address sanitizer" OFF ADVANCED)
+
+# ---------------------------------------------------------------
+# Options to enable SUNDIALS debugging
+# ---------------------------------------------------------------
+
+# List of debugging options (used to add preprocessor directives)
+set(_SUNDIALS_DEBUG_OPTIONS
+  SUNDIALS_DEBUG
+  SUNDIALS_DEBUG_ASSERT
+  SUNDIALS_DEBUG_CUDA_LASTERROR
+  SUNDIALS_DEBUG_HIP_LASTERROR
+  SUNDIALS_DEBUG_PRINTVEC)
+
+sundials_option(SUNDIALS_DEBUG BOOL
+  "Enable additional debugging output and options" OFF
+  ADVANCED)
+
+if(SUNDIALS_DEBUG AND SUNDIALS_LOGGING_LEVEL LESS 4)
+  set(DOCSTR "SUNDIALS_DEBUG=ON forced the logging level to 4")
+  message(STATUS "${DOCSTR}")
+  set(SUNDIALS_LOGGING_LEVEL "4" CACHE STRING "${DOCSTR}" FORCE)
+endif()
+
+sundials_option(SUNDIALS_DEBUG_ASSERT BOOL
+  "Enable assert when debugging" OFF
+  DEPENDS_ON SUNDIALS_DEBUG
+  ADVANCED)
+
+sundials_option(SUNDIALS_DEBUG_CUDA_LASTERROR BOOL
+  "Enable CUDA last error checks when debugging" OFF
+  DEPENDS_ON SUNDIALS_DEBUG ENABLE_CUDA
+  ADVANCED)
+
+sundials_option(SUNDIALS_DEBUG_HIP_LASTERROR BOOL
+  "Enable HIP last error checks when debugging" OFF
+  DEPENDS_ON SUNDIALS_DEBUG ENABLE_HIP
+  ADVANCED)
+
+sundials_option(SUNDIALS_DEBUG_PRINTVEC BOOL
+  "Enable vector printing when debugging" OFF
+  DEPENDS_ON SUNDIALS_DEBUG
+  ADVANCED)
+
+if(SUNDIALS_DEBUG_PRINTVEC AND SUNDIALS_LOGGING_LEVEL LESS 5)
+  set(DOCSTR "SUNDIALS_DEBUG_PRINTVEC=ON forced the logging level to 5")
+  message(STATUS "${DOCSTR}")
+  set(SUNDIALS_LOGGING_LEVEL "5" CACHE STRING "${DOCSTR}" FORCE)
+endif()
+
+# ---------------------------------------------------------------
+# Options for SUNDIALS testing
+# ---------------------------------------------------------------
+
+sundials_option(SUNDIALS_TEST_FLOAT_PRECISION STRING
+  "Precision for floating point comparisons (number of digits)" "-1" ADVANCED)
+
+sundials_option(SUNDIALS_TEST_INTEGER_PRECISION STRING
+  "Precision for integer comparisons (percent difference)" "-1" ADVANCED)
+
+sundials_option(SUNDIALS_TEST_OUTPUT_DIR PATH
+  "Location to write testing output files" "" ADVANCED)
+
+sundials_option(SUNDIALS_TEST_ANSWER_DIR PATH
+  "Location of testing answer files" "" ADVANCED)

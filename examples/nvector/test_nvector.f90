@@ -5,7 +5,7 @@
 ! test_nvector.c written by David Gardner and Slaven Peles @ LLNL.
 ! -----------------------------------------------------------------
 ! SUNDIALS Copyright Start
-! Copyright (c) 2002-2021, Lawrence Livermore National Security
+! Copyright (c) 2002-2022, Lawrence Livermore National Security
 ! and Southern Methodist University.
 ! All rights reserved.
 !
@@ -113,7 +113,9 @@ integer(C_INT) function Test_FN_VLinearCombination(X, local_length, myid) &
   Y3 => FN_VClone(X)
 
   ! set vectors in vector array
-  V = (/c_loc(Y1), c_loc(Y2), c_loc(Y3)/)
+  V(1) = c_loc(Y1)
+  V(2) = c_loc(Y2)
+  V(3) = c_loc(Y3)
   Vptr = c_loc(V)
 
   ! initialize c values

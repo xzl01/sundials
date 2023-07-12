@@ -2,7 +2,7 @@
 # Programmer(s): Slaven Peles @ LLNL
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -27,7 +27,6 @@ set(nvector_cuda_examples
 # Dependencies for nvector examples
 set(nvector_examples_dependencies
   test_nvector
-  sundials_nvector
   )
 
 # Add source directory to include directories
@@ -37,7 +36,7 @@ include_directories(. .. ${PROJECT_SOURCE_DIR}/examples/utilities)
 set(NVECS_LIB sundials_nveccuda sundials_nvecserial)
 
 # Set-up linker flags and link libraries
-set(SUNDIALS_LIBS ${NVECS_LIB} ${EXTRA_LINK_LIBS})
+set(SUNDIALS_LIBS ${NVECS_LIB} ${EXE_EXTRA_LINK_LIBS})
 
 # Add the build and install targets for each example
 foreach(example_tuple ${nvector_cuda_examples})
@@ -53,7 +52,10 @@ foreach(example_tuple ${nvector_cuda_examples})
   # example source files once for testing with different inputs
   if(NOT TARGET ${example})
     # example source files
-    add_executable(${example} ${example}.cu ../test_nvector.c)
+    add_executable(${example} ${example}.cu)
+
+    # link vector test utilties
+    target_link_libraries(${example} PRIVATE test_nvector_obj)
 
     # folder to organize targets in an IDE
     set_target_properties(${example} PROPERTIES FOLDER "Examples")
@@ -89,7 +91,6 @@ foreach(example_tuple ${nvector_cuda_examples})
       ../test_nvector.c
       ../test_nvector.h
       ${SUNDIALS_SOURCE_DIR}/examples/utilities/custom_memory_helper_gpu.h
-      ${SUNDIALS_SOURCE_DIR}/src/sundials/sundials_nvector.c
       DESTINATION ${EXAMPLES_INSTALL_PATH}/nvector/cuda)
   endif()
 

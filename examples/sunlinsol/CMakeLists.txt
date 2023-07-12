@@ -2,7 +2,7 @@
 # Programmer(s): David J. Gardner and Slaven Peles @ LLNL
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -14,6 +14,11 @@
 # examples/sunlinsol level CMakeLists.txt for SUNDIALS
 # ---------------------------------------------------------------
 
+if(ENABLE_CALIPER AND SUNDIALS_BUILD_WITH_PROFILING)
+  include_directories(${caliper_INCLUDE_DIR})
+  set(EXE_EXTRA_LINK_LIBS ${EXE_EXTRA_LINK_LIBS} caliper)
+endif()
+
 # Always add the serial sunlinearsolver dense and band examples
 add_subdirectory(band)
 add_subdirectory(dense)
@@ -24,6 +29,10 @@ add_subdirectory(spfgmr/serial)
 add_subdirectory(spbcgs/serial)
 add_subdirectory(sptfqmr/serial)
 add_subdirectory(pcg/serial)
+
+# Build the sunlinsol test utilities
+add_library(test_sunlinsol_obj OBJECT test_sunlinsol.c test_sunlinsol.h)
+target_link_libraries(test_sunlinsol_obj PRIVATE sundials_sunlinsoldense)
 
 if(ENABLE_MPI AND MPI_C_FOUND)
   add_subdirectory(spgmr/parallel)
@@ -38,8 +47,16 @@ if(BUILD_SUNMATRIX_CUSPARSE)
   endif()
 endif()
 
+if(BUILD_SUNLINSOL_GINKGO)
+  add_subdirectory(ginkgo)
+endif()
+
 if(BUILD_SUNLINSOL_KLU)
   add_subdirectory(klu)
+endif()
+
+if(BUILD_SUNLINSOL_KOKKOSDENSE)
+  add_subdirectory(kokkos)
 endif()
 
 if(BUILD_SUNLINSOL_LAPACKBAND)

@@ -2,7 +2,7 @@
 # Programmer(s): David J. Gardner @ LLNL
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -16,12 +16,14 @@
 
 # Example lists are tuples "name\;nodes\;tasks\;type" where the
 # type is develop for examples excluded from 'make test' in releases
-
-# Examples using SUNDIALS linear solvers
-set(FARKODE_examples
-  "ark_brusselator1D_task_local_nls_f2003\;--monitor\;1\;4\;develop\;2"
-  "ark_brusselator1D_task_local_nls_f2003\;--monitor --global-nls\;1\;4\;develop\;2"
-  "ark_brusselator1D_task_local_nls_f2003\;--monitor --explicit --tf 3\;1\;4\;develop\;2")
+if(SUNDIALS_LOGGING_ENABLE_MPI)
+  set(FARKODE_examples
+    "ark_brusselator1D_task_local_nls_f2003\;--monitor\;1\;4\;develop\;2"
+    "ark_brusselator1D_task_local_nls_f2003\;--monitor --global-nls\;1\;4\;develop\;2"
+    "ark_brusselator1D_task_local_nls_f2003\;--monitor --explicit --tf 3\;1\;4\;develop\;2")
+else()
+  set(FARKODE_examples )
+endif()
 
 if(MPI_Fortran_COMPILER)
   # use MPI wrapper as the compiler
@@ -41,7 +43,7 @@ set(ARKODE_LIBS
   sundials_fnvecmpimanyvector_mod)
 
 # Set-up linker flags and link libraries
-set(SUNDIALS_LIBS ${ARKODE_LIBS} ${EXTRA_LINK_LIBS})
+set(SUNDIALS_LIBS ${ARKODE_LIBS} ${EXE_EXTRA_LINK_LIBS})
 
 # Add the build and install targets for each example
 foreach(example_tuple ${FARKODE_examples})

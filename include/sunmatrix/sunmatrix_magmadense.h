@@ -3,7 +3,7 @@
  * Programmer(s): Cody J. Balos @ LLNL
  * -----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2021, Lawrence Livermore National Security
+ * Copyright (c) 2002-2022, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -58,10 +58,10 @@ typedef struct _SUNMatrixContent_MagmaDense *SUNMatrixContent_MagmaDense;
  * ---------------------------------------*/
 
 SUNDIALS_EXPORT SUNMatrix SUNMatrix_MagmaDense(sunindextype M, sunindextype N, SUNMemoryType memtype,
-                                               SUNMemoryHelper memhelper, void* queue);
+                                               SUNMemoryHelper memhelper, void* queue, SUNContext sunctx);
 SUNDIALS_EXPORT SUNMatrix SUNMatrix_MagmaDenseBlock(sunindextype nblocks, sunindextype M, sunindextype N,
                                                     SUNMemoryType memtype, SUNMemoryHelper memhelper,
-                                                    void* queue);
+                                                    void* queue, SUNContext sunctx);
 SUNDIALS_EXPORT void SUNMatrix_MagmaDense_Print(SUNMatrix A);
 SUNDIALS_EXPORT realtype* SUNMatrix_MagmaDense_Data(SUNMatrix A);
 SUNDIALS_EXPORT sunindextype SUNMatrix_MagmaDense_LData(SUNMatrix A);
@@ -69,6 +69,7 @@ SUNDIALS_EXPORT sunindextype SUNMatrix_MagmaDense_Rows(SUNMatrix A);
 SUNDIALS_EXPORT sunindextype SUNMatrix_MagmaDense_Columns(SUNMatrix A);
 SUNDIALS_EXPORT sunindextype SUNMatrix_MagmaDense_BlockRows(SUNMatrix A);
 SUNDIALS_EXPORT sunindextype SUNMatrix_MagmaDense_BlockColumns(SUNMatrix A);
+SUNDIALS_EXPORT sunindextype SUNMatrix_MagmaDense_BlockLData(SUNMatrix A);
 SUNDIALS_EXPORT sunindextype SUNMatrix_MagmaDense_NumBlocks(SUNMatrix A);
 SUNDIALS_EXPORT realtype** SUNMatrix_MagmaDense_BlockData(SUNMatrix A);
 SUNDIALS_EXPORT int SUNMatrix_MagmaDense_CopyToDevice(SUNMatrix A, realtype* h_data);

@@ -2,7 +2,7 @@
 # Programmer(s): Cody J. Balos @ LLNL
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -26,8 +26,8 @@ sundials_add_library(sundials_sunlinsolcusolversp
   OBJECT_LIBRARIES
     sundials_generic_obj
   LINK_LIBRARIES
-    PUBLIC sundials_sunmatrixcusparse ${CUDA_cusolver_LIBRARY}
-    PRIVATE ${CUDA_cusparse_LIBRARY}
+    PUBLIC sundials_sunmatrixcusparse CUDA::cusolver
+    PRIVATE CUDA::cusparse
   OUTPUT_NAME
     sundials_sunlinsolcusolversp
   VERSION

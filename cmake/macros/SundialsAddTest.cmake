@@ -2,7 +2,7 @@
 # Programmer(s): Steven Smith and David J. Gardner @ LLNL
 # ------------------------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -28,7 +28,7 @@
 # floating point values and 10% for integer values.
 #
 # The level of precision can be adjusted for an individual test with the
-# FLOAT_PRECISION AND INTEGER_PERCENTAGE keyword inputs to the macro or globally
+# FLOAT_PRECISION AND INTEGER_PRECISION keyword inputs to the macro or globally
 # for all tests with the cache variables SUNDIALS_TEST_FLOAT_PRECISION and
 # SUNDIALS_TEST_INTEGER_PRECISION.
 #
@@ -51,29 +51,33 @@ macro(SUNDIALS_ADD_TEST NAME EXECUTABLE)
   set(options "NODIFF")
 
   # macro keyword inputs followed by a single value
-  # MPI_NPROCS         = number of mpi tasks to use in parallel tests
-  # FLOAT_PRECISION    = precision for floating point failure comparision (num digits),
-  #                      to use the default, either don't provide the keyword, or
-  #                      provide the value "default"
-  # INTEGER_PRECENTAGE = integer percentage difference for failure comparison
-  # ANSWER_DIR         = path to the directory containing the test answer file
-  # ANSWER_FILE        = name of test answer file
-  # EXAMPLE_TYPE       = release or develop examples
-  set(oneValueArgs "MPI_NPROCS" "FLOAT_PRECISION" "INTEGER_PERCENTAGE"
+  # MPI_NPROCS        = number of mpi tasks to use in parallel tests
+  # FLOAT_PRECISION   = precision for floating point failure comparision (num digits),
+  #                     to use the default, either don't provide the keyword, or
+  #                     provide the value "default"
+  # INTEGER_PRECISION = integer percentage difference for failure comparison
+  # ANSWER_DIR        = path to the directory containing the test answer file
+  # ANSWER_FILE       = name of test answer file
+  # EXAMPLE_TYPE      = release or develop examples
+  set(oneValueArgs "MPI_NPROCS" "FLOAT_PRECISION" "INTEGER_PRECISION"
     "ANSWER_DIR" "ANSWER_FILE" "EXAMPLE_TYPE")
 
   # macro keyword inputs followed by multiple values
   # TEST_ARGS = command line arguments to pass to the test executable
-  set(multiValueArgs "TEST_ARGS")
+  set(multiValueArgs "TEST_ARGS" "EXTRA_ARGS")
 
   # parse inputs and create variables SUNDIALS_ADD_TEST_<keyword>
   cmake_parse_arguments(SUNDIALS_ADD_TEST
     "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  # SGS add check to make sure parallel is integer
-
   # check that the test is not excluded
-  if(NOT ("${SUNDIALS_ADD_TEST_EXAMPLE_TYPE}" STREQUAL "exclude"))
+  string(TOLOWER "exclude-${SUNDIALS_PRECISION}" _exclude_precision)
+  if( ("${SUNDIALS_ADD_TEST_EXAMPLE_TYPE}" STREQUAL "exclude") OR
+      ("${SUNDIALS_ADD_TEST_EXAMPLE_TYPE}" STREQUAL _exclude_precision) )
+
+    message(STATUS "Skipped test ${NAME} because it had type ${SUNDIALS_ADD_TEST_EXAMPLE_TYPE}")
+
+  else()
 
     if(SUNDIALS_TEST_DEVTESTS)
 
@@ -111,34 +115,45 @@ macro(SUNDIALS_ADD_TEST NAME EXECUTABLE)
         list(APPEND TEST_ARGS "--nodiff")
       else()
         # set a non-default floating point precision (number of digits, default 4)
-        if(SUNDIALS_TEST_FLOAT_PRECISION)
-          list(APPEND TEST_ARGS "--floatprecision=${SUNDIALS_TEST_FLOAT_PRECISION}")
-        elseif(SUNDIALS_ADD_TEST_FLOAT_PRECISION AND
-               (NOT SUNDIALS_ADD_TEST_FLOAT_PRECISION MATCHES "DEFAULT|default"))
+        if(SUNDIALS_ADD_TEST_FLOAT_PRECISION AND
+            (NOT SUNDIALS_ADD_TEST_FLOAT_PRECISION MATCHES "DEFAULT|default"))
           list(APPEND TEST_ARGS "--floatprecision=${SUNDIALS_ADD_TEST_FLOAT_PRECISION}")
+        elseif(SUNDIALS_TEST_FLOAT_PRECISION GREATER_EQUAL "0")
+          list(APPEND TEST_ARGS "--floatprecision=${SUNDIALS_TEST_FLOAT_PRECISION}")
         endif()
         # set a non-default integer precision (percent difference, default 10%)
-        if(SUNDIALS_TEST_INTEGER_PRECISION)
+        if(SUNDIALS_ADD_TEST_INTEGER_PRECISION AND
+            (NOT SUNDIALS_ADD_TEST_INTEGER_PRECISION MATCHES "DEFAULT|default"))
+          list(APPEND TEST_ARGS "--integerpercentage=${SUNDIALS_ADD_TEST_INTEGER_PRECISION}")
+        elseif(SUNDIALS_TEST_INTEGER_PRECISION GREATER_EQUAL "0")
           list(APPEND TEST_ARGS "--integerpercentage=${SUNDIALS_TEST_INTEGER_PRECISION}")
-        elseif(SUNDIALS_ADD_TEST_INTEGER_PERCENTAGE)
-          list(APPEND TEST_ARGS "--integerpercentage=${SUNDIALS_ADD_TEST_INTEGER_PERCENTAGE}")
         endif()
       endif()
 
       # check if this test is run with MPI and set the MPI run command
       if((SUNDIALS_ADD_TEST_MPI_NPROCS) AND (MPIEXEC_EXECUTABLE))
-        if(MPIEXEC_EXECUTABLE MATCHES "srun")
-          set(RUN_COMMAND "srun -N1 -n${SUNDIALS_ADD_TEST_MPI_NPROCS} -ppdebug")
-        else()
-          set(RUN_COMMAND "${MPIEXEC_EXECUTABLE} -n ${SUNDIALS_ADD_TEST_MPI_NPROCS}")
-        endif()
+        set(RUN_COMMAND "${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${SUNDIALS_ADD_TEST_MPI_NPROCS} ${MPIEXEC_PREFLAGS}")
+        # remove trailing white space (empty MPIEXEC_PREFLAGS) as it can cause
+        # erroneous test failures with some MPI implementations
+        string(STRIP "${RUN_COMMAND}" RUN_COMMAND)
         list(APPEND TEST_ARGS "--runcommand=\"${RUN_COMMAND}\"")
       endif()
 
       # set the test input args
       if(SUNDIALS_ADD_TEST_TEST_ARGS)
-        string(REPLACE ";" " " USER_ARGS "${SUNDIALS_ADD_TEST_TEST_ARGS}")
-        list(APPEND TEST_ARGS "--runargs=\"${USER_ARGS}\"")
+        string(REPLACE ";" " " _user_args "${SUNDIALS_ADD_TEST_TEST_ARGS}")
+        set(_run_args "${_user_args}")
+        unset(_user_args)
+      endif()
+      if(SUNDIALS_ADD_TEST_EXTRA_ARGS)
+        string(REPLACE ";" " " _extra_args "${SUNDIALS_ADD_TEST_EXTRA_ARGS}")
+        set(_run_args "${_run_args} ${_extra_args}")
+        unset(_extra_args)
+      endif()
+      if (_run_args)
+        string(STRIP "${_run_args}" _run_args)
+        list(APPEND TEST_ARGS "--runargs=\"${_run_args}\"")
+        unset(_run_args)
       endif()
 
       # create test case with the corresponding test runner command and arguments
@@ -156,7 +171,10 @@ macro(SUNDIALS_ADD_TEST NAME EXECUTABLE)
 
       # check if this test is run with MPI and add the test run command
       if((SUNDIALS_ADD_TEST_MPI_NPROCS) AND (MPIEXEC_EXECUTABLE))
-        add_test(NAME ${NAME} COMMAND ${MPIEXEC_EXECUTABLE} -n ${SUNDIALS_ADD_TEST_MPI_NPROCS} $<TARGET_FILE:${EXECUTABLE}> ${TEST_ARGS})
+        if(MPIEXEC_PREFLAGS)
+          string(REPLACE " " ";" PREFLAGS "${MPIEXEC_PREFLAGS}")
+        endif()
+        add_test(NAME ${NAME} COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${SUNDIALS_ADD_TEST_MPI_NPROCS} ${PREFLAGS} $<TARGET_FILE:${EXECUTABLE}> ${TEST_ARGS})
       else()
         add_test(NAME ${NAME} COMMAND $<TARGET_FILE:${EXECUTABLE}> ${TEST_ARGS})
       endif()

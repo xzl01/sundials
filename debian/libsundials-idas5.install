@@ -1,0 +1,2 @@
+usr/lib/*/libsundials_idas.so.*
+usr/lib/*/libsundials_fidas_mod.so.*

@@ -2,7 +2,7 @@
 # Programmer(s): David J. Gardner @ LLNL
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -14,7 +14,32 @@
 # unit_tests level CMakeLists.txt for SUNDIALS
 # ---------------------------------------------------------------
 
-# Add ARKode unit tests
+message("Adding units tests")
+
 if(BUILD_ARKODE)
   add_subdirectory(arkode)
+endif()
+
+if(BUILD_CVODE)
+  add_subdirectory(cvode)
+endif()
+
+if(BUILD_CVODES)
+  add_subdirectory(cvodes)
+endif()
+
+if(BUILD_IDA)
+  add_subdirectory(ida)
+endif()
+
+if(BUILD_IDAS)
+  add_subdirectory(idas)
+endif()
+
+if(BUILD_KINSOL)
+  add_subdirectory(kinsol)
+endif()
+
+if(CXX_FOUND)
+  add_subdirectory(reductions)
 endif()

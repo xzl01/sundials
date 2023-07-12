@@ -1,0 +1,4 @@
+usr/lib/*/libsundials_nvecserial.so.*
+usr/lib/*/libsundials_fnvecserial_mod.so.*
+usr/lib/*/libsundials_nvecmany*.so.*
+usr/lib/*/libsundials_fnvecmanyvector_*.so.*

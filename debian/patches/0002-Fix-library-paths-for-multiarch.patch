@@ -6,13 +6,13 @@ Subject: Fix library paths for multiarch
  CMakeLists.txt | 4 ++++
  1 file changed, 4 insertions(+)
 
-Index: sundials-5.8.0/CMakeLists.txt
+Index: sundials-6.1.1/CMakeLists.txt
 ===================================================================
---- sundials-5.8.0.orig/CMakeLists.txt
-+++ sundials-5.8.0/CMakeLists.txt
-@@ -37,6 +37,10 @@ include(SundialsCMakeMacros)
+--- sundials-6.1.1.orig/CMakeLists.txt
++++ sundials-6.1.1/CMakeLists.txt
+@@ -39,6 +39,10 @@ include(CheckCSourceCompiles)
  include(FindPackageHandleStandardArgs)
- include(CMakePrintHelpers)
+ 
  
 +# Get correct build paths automatically
 +

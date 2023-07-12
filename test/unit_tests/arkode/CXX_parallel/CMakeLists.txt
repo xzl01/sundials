@@ -2,7 +2,7 @@
 # Programmer(s): Daniel R. Reynolds @ SMU
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -37,7 +37,7 @@ set(ARKODE_LIB sundials_arkode)
 set(NVECP_LIB sundials_nvecparallel)
 
 # Set-up linker flags and link libraries
-set(SUNDIALS_LIBS ${ARKODE_LIB} ${NVECP_LIB} ${EXTRA_LINK_LIBS})
+set(SUNDIALS_LIBS ${ARKODE_LIB} ${NVECP_LIB} ${EXE_EXTRA_LINK_LIBS})
 
 # Add the build and install targets for each test
 foreach(test_tuple ${ARKODE_unit_tests})
@@ -83,5 +83,6 @@ foreach(test_tuple ${ARKODE_unit_tests})
     TEST_ARGS ${test_args}
     MPI_NPROCS ${number_of_tasks}
     NODIFF)
-
 endforeach()
+
+message(STATUS "Added ARKODE CXX parallel unit tests")

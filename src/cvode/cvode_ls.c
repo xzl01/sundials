@@ -3,7 +3,7 @@
  *                Alan C. Hindmarsh and Radu Serban @ LLNL
  * ----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2021, Lawrence Livermore National Security
+ * Copyright (c) 2002-2022, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -191,10 +191,11 @@ int CVodeSetLinearSolver(void *cvode_mem, SUNLinearSolver LS,
   cvLsInitializeCounters(cvls_mem);
 
   /* Set default values for the rest of the LS parameters */
-  cvls_mem->msbj      = CVLS_MSBJ;
-  cvls_mem->jbad      = SUNTRUE;
-  cvls_mem->eplifac   = CVLS_EPLIN;
-  cvls_mem->last_flag = CVLS_SUCCESS;
+  cvls_mem->msbj       = CVLS_MSBJ;
+  cvls_mem->jbad       = SUNTRUE;
+  cvls_mem->dgmax_jbad = CVLS_DGMAX;
+  cvls_mem->eplifac    = CVLS_EPLIN;
+  cvls_mem->last_flag  = CVLS_SUCCESS;
 
   /* If LS supports ATimes, attach CVLs routine */
   if (LS->ops->setatimes) {
@@ -305,6 +306,30 @@ int CVodeSetJacFn(void *cvode_mem, CVLsJacFn jac)
 }
 
 
+/* CVodeSetDeltaGammaMaxBadJac specifies the maximum gamma ratio change
+ * after a NLS convergence failure with a potentially bad Jacobian. If
+ * |gamma/gammap-1| < dgmax_jbad then the Jacobian is marked as bad */
+int CVodeSetDeltaGammaMaxBadJac(void *cvode_mem, realtype dgmax_jbad)
+{
+  CVodeMem cv_mem;
+  CVLsMem  cvls_mem;
+  int      retval;
+
+  /* Access CVLsMem structure */
+  retval = cvLs_AccessLMem(cvode_mem, "CVodeSetDeltaGammaMaxBadJac",
+                           &cv_mem, &cvls_mem);
+  if (retval != CVLS_SUCCESS) return(retval);
+
+  /* Set value or use default */
+  if(dgmax_jbad <= ZERO)
+    cvls_mem->dgmax_jbad = CVLS_DGMAX;
+  else
+    cvls_mem->dgmax_jbad = dgmax_jbad;
+
+  return(CVLS_SUCCESS);
+}
+
+
 /* CVodeSetEpsLin specifies the nonlinear -> linear tolerance scale factor */
 int CVodeSetEpsLin(void *cvode_mem, realtype eplifac)
 {
@@ -384,13 +409,6 @@ int CVodeSetJacEvalFrequency(void *cvode_mem, long int msbj)
   return(CVLS_SUCCESS);
 }
 
-/* Deprecated */
-int CVodeSetMaxStepsBetweenJac(void *cvode_mem, long int msbj)
-{
-  return(CVodeSetJacEvalFrequency(cvode_mem, msbj));
-}
-
-
 /* CVodeSetLinearSolutionScaling enables or disables scaling the
    linear solver solution to account for changes in gamma. */
 int CVodeSetLinearSolutionScaling(void *cvode_mem, booleantype onoff)
@@ -422,8 +440,8 @@ int CVodeSetPreconditioner(void *cvode_mem, CVLsPrecSetupFn psetup,
 {
   CVodeMem cv_mem;
   CVLsMem  cvls_mem;
-  PSetupFn cvls_psetup;
-  PSolveFn cvls_psolve;
+  SUNPSetupFn cvls_psetup;
+  SUNPSolveFn cvls_psolve;
   int      retval;
 
   /* access CVLsMem structure */
@@ -1499,7 +1517,7 @@ int cvLsSetup(CVodeMem cv_mem, int convfail, N_Vector ypred,
   dgamma = SUNRabs((cv_mem->cv_gamma/cv_mem->cv_gammap) - ONE);
   cvls_mem->jbad = (cv_mem->cv_nst == 0) ||
     (cv_mem->cv_nst >= cvls_mem->nstlj + cvls_mem->msbj) ||
-    ((convfail == CV_FAIL_BAD_J) && (dgamma < CVLS_DGMAX)) ||
+    ((convfail == CV_FAIL_BAD_J) && (dgamma < cvls_mem->dgmax_jbad)) ||
     (convfail == CV_FAIL_OTHER);
 
   /* Setup the linear system if necessary */
@@ -1575,6 +1593,10 @@ int cvLsSolve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
   CVLsMem  cvls_mem;
   realtype bnorm, deltar, delta, w_mean;
   int      curiter, nli_inc, retval;
+#if SUNDIALS_LOGGING_LEVEL >= SUNDIALS_LOGGING_DEBUG
+  realtype resnorm;
+  long int nps_inc;
+#endif
 
   /* access CVLsMem structure */
   if (cv_mem->cv_lmem==NULL) {
@@ -1650,6 +1672,10 @@ int cvLsSolve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
   retval = SUNLinSolSetZeroGuess(cvls_mem->LS, SUNTRUE);
   if (retval != SUNLS_SUCCESS) return(-1);
 
+#if SUNDIALS_LOGGING_LEVEL >= SUNDIALS_LOGGING_DEBUG
+  /* Store previous nps value in nps_inc */
+  nps_inc = cvls_mem->nps;
+#endif
   /* If a user-provided jtsetup routine is supplied, call that here */
   if (cvls_mem->jtsetup) {
     cvls_mem->last_flag = cvls_mem->jtsetup(cv_mem->cv_tn, ynow, fnow,
@@ -1672,9 +1698,19 @@ int cvLsSolve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
     N_VScale(TWO/(ONE + cv_mem->cv_gamrat), b, b);
 
   /* Retrieve statistics from iterative linear solvers */
+#if SUNDIALS_LOGGING_LEVEL >= SUNDIALS_LOGGING_DEBUG
+  resnorm = ZERO;
+#endif
   nli_inc = 0;
-  if (cvls_mem->iterative && cvls_mem->LS->ops->numiters)
-    nli_inc = SUNLinSolNumIters(cvls_mem->LS);
+  if (cvls_mem->iterative) {
+#if SUNDIALS_LOGGING_LEVEL >= SUNDIALS_LOGGING_DEBUG
+    if (cvls_mem->LS->ops->resnorm)
+      resnorm = SUNLinSolResNorm(cvls_mem->LS);
+#endif
+    if (cvls_mem->LS->ops->numiters)
+      nli_inc = SUNLinSolNumIters(cvls_mem->LS);
+  }
+
 
   /* Increment counters nli and ncfl */
   cvls_mem->nli += nli_inc;
@@ -1682,6 +1718,13 @@ int cvLsSolve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 
   /* Interpret solver return value  */
   cvls_mem->last_flag = retval;
+
+#if SUNDIALS_LOGGING_LEVEL >= SUNDIALS_LOGGING_DEBUG
+  SUNLogger_QueueMsg(CV_LOGGER, SUN_LOGLEVEL_DEBUG,
+    "CVODE::cvLsSolve", "ls-stats",
+    "bnorm = %.16g, resnorm = %.16g, ls_iters = %i, prec_solves = %i",
+    bnorm, resnorm, nli_inc, (int)(cvls_mem->nps - nps_inc));
+#endif
 
   switch(retval) {
 

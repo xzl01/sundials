@@ -1,0 +1,4 @@
+usr/lib/*/libsundials_*sunlinsol*.so.*
+usr/lib/*/libsundials_sunnonlinsol*.so.*
+usr/lib/*/libsundials_fsunnonlinsol*.so.*
+usr/lib/*/libsundials_generic.so.*

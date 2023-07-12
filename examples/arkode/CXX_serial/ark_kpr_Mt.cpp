@@ -2,7 +2,7 @@
  * Programmer(s): Daniel R. Reynolds @ SMU
  * ----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2021, Lawrence Livermore National Security
+ * Copyright (c) 2002-2022, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -49,7 +49,7 @@
  * accuracy for the method.
  *
  * The program should be run with arguments in the following order:
- *   $ a.out RK ord N G TD g
+ *   $ a.out RK ord N G TD g deduce
  * Not all arguments are required, but these must be omitted from
  * end-to-beginning, i.e. any one of
  *   $ a.out RK ord N G TD
@@ -148,6 +148,7 @@ int main(int argc, char *argv[])
   int rk_type = 0;                  // type of RK method [ARK=0, DIRK=1, ERK=2]
   int nls_type = 0;                 // type of nonlinear solver [Newton=0, FP=1]
   int order = 4;                    // order of accuracy for RK method
+  booleantype deduce = SUNFALSE;    // deduce fi after a nonlinear solve
   booleantype adaptive = SUNTRUE;   // adaptive run vs convergence order
   realtype reltol = RCONST(1e-5);   // relative tolerance
   realtype abstol = RCONST(1e-11);  // absolute tolerance
@@ -171,13 +172,14 @@ int main(int argc, char *argv[])
   // Initialization
   //
 
-  // Retrieve the command-line options: RK ord N G TD g
+  // Retrieve the command-line options: RK ord N G TD g reeval
   if (argc > 1)  rk_type = (int) atoi(argv[1]);
   if (argc > 2)  order = (int) atoi(argv[2]);
   if (argc > 3)  nls_type = (int) atoi(argv[3]);
   if (argc > 4)  udata.G = (realtype) atof(argv[4]);
   if (argc > 5)  udata.M_timedep = (int) atoi(argv[5]);
   if (argc > 6)  udata.g = (realtype) atof(argv[6]);
+  if (argc > 7)  deduce = (int) atoi(argv[7]);
 
   // Check arguments for validity
   //   0 <= rk_type <= 2
@@ -233,9 +235,11 @@ int main(int argc, char *argv[])
   // Problem Setup
   //
 
+  // Create SUNDIALS context
+  sundials::Context ctx;
 
   // Create and initialize serial vector for the solution
-  y = N_VNew_Serial(NEQ);
+  y = N_VNew_Serial(NEQ, ctx);
   if (check_retval((void *)y, "N_VNew_Serial", 0)) return 1;
   retval = Ytrue(T0, y);
   if (check_retval(&retval, "Ytrue", 1)) return 1;
@@ -244,11 +248,11 @@ int main(int argc, char *argv[])
   // M(t) * y' = fe(t,y) + fi(t,y), the inital time T0, and the
   // initial dependent variable vector y.
   if (rk_type == 0) {         // ARK method
-    arkode_mem = ARKStepCreate(fe, fi, T0, y);
+    arkode_mem = ARKStepCreate(fe, fi, T0, y, ctx);
   } else if (rk_type == 1) {  // DIRK method
-    arkode_mem = ARKStepCreate(NULL, fn, T0, y);
+    arkode_mem = ARKStepCreate(NULL, fn, T0, y, ctx);
   } else {                    // ERK method
-    arkode_mem = ARKStepCreate(fn, NULL, T0, y);
+    arkode_mem = ARKStepCreate(fn, NULL, T0, y, ctx);
   }
   if (check_retval((void *) arkode_mem, "ARKStepCreate", 0)) return 1;
 
@@ -257,14 +261,14 @@ int main(int argc, char *argv[])
 
     if (nls_type == 0) {   // Newton
 
-      NLS = SUNNonlinSol_Newton(y);
+      NLS = SUNNonlinSol_Newton(y, ctx);
       if (check_retval((void *)NLS, "SUNNonlinSol_Newton", 0)) return 1;
       retval = ARKStepSetNonlinearSolver(arkode_mem, NLS);
       if (check_retval(&retval, "ARKStepSetNonlinearSolver", 1)) return(1);
 
-      A = SUNDenseMatrix(NEQ, NEQ);
+      A = SUNDenseMatrix(NEQ, NEQ, ctx);
       if (check_retval((void *)A, "SUNDenseMatrix", 0)) return 1;
-      LS = SUNLinSol_Dense(y, A);
+      LS = SUNLinSol_Dense(y, A, ctx);
       if (check_retval((void *)LS, "SUNLinSol_Dense", 0)) return 1;
       retval = ARKStepSetLinearSolver(arkode_mem, LS, A);
       if (check_retval(&retval, "ARKStepSetLinearSolver", 1)) return(1);
@@ -277,7 +281,7 @@ int main(int argc, char *argv[])
 
     } else {               // Fixed-point
 
-      NLS = SUNNonlinSol_FixedPoint(y,4);
+      NLS = SUNNonlinSol_FixedPoint(y, 4, ctx);
       if (check_retval((void *)NLS, "SUNNonlinSol_FixedPoint", 0)) return 1;
       retval = ARKStepSetNonlinearSolver(arkode_mem, NLS);
       if (check_retval(&retval, "ARKStepSetNonlinearSolver", 1)) return(1);
@@ -292,9 +296,9 @@ int main(int argc, char *argv[])
   }
 
   // Initialize/attach mass matrix solver
-  M = SUNDenseMatrix(NEQ, NEQ);
+  M = SUNDenseMatrix(NEQ, NEQ, ctx);
   if (check_retval((void *)M, "SUNDenseMatrix", 0)) return 1;
-  MLS = SUNLinSol_Dense(y, M);
+  MLS = SUNLinSol_Dense(y, M, ctx);
   if (check_retval((void *)MLS, "SUNLinSol_Dense", 0)) return 1;
   retval = ARKStepSetMassLinearSolver(arkode_mem, MLS, M, SUNTRUE);
   if (check_retval(&retval, "ARKStepSetMassLinearSolver", 1)) return(1);
@@ -304,6 +308,9 @@ int main(int argc, char *argv[])
   // Set desired solver order
   retval = ARKStepSetOrder(arkode_mem, order);
   if (check_retval(&retval, "ARKStepSetOrder", 1)) return 1;
+
+  retval = ARKStepSetDeduceImplicitRhs(arkode_mem, deduce);
+  if (check_retval(&retval, "ARKStepSetDeduceImplicitRhs", 1)) return 1;
 
   // Set the user data pointer
   retval = ARKStepSetUserData(arkode_mem, (void *) &udata);

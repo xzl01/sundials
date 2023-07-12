@@ -12,14 +12,14 @@ extra_flags += \
 	-DCMAKE_Fortran_COMPILER=gfortran \
 	-DBUILD_SHARED_LIBS:BOOL=ON \
 	-DBUILD_STATIC_LIBS:BOOL=ON \
-	-DBUILD_FORTRAN77_INTERFACE:BOOL=ON \
+	-DBUILD_FORTRAN_MODULE_INTERFACE:BOOL=ON \
 	-DENABLE_MPI:BOOL=ON \
 	\
 	-DENABLE_LAPACK:BOOL=OFF\
 	\
 	-DEXAMPLES_ENABLE_C:BOOL=ON \
 	-DEXAMPLES_ENABLE_CXX:BOOL=ON \
-	-DEXAMPLES_ENABLE_F77:BOOL=ON \
+	-DEXAMPLES_ENABLE_F2003:BOOL=ON \
 	-DEXAMPLES_INSTALL:BOOL=ON \
 	\
 	-DENABLE_OPENMP:BOOL=ON \
@@ -68,8 +68,7 @@ override_dh_auto_install:
 	rm debian/tmp/usr/include/sundials/LICENSE
 
 # We copy READMEs by hand because they need to be renamed
-override_dh_installdocs:
-	dh_installdocs
+execute_after_dh_installdocs:
 	mkdir -p debian/libsundials-dev/usr/share/doc/libsundials-dev
 	for module in arkode cvode cvodes ida idas kinsol; do \
 		cp src/$${module}/README.md debian/libsundials-dev/usr/share/doc/libsundials-dev/README.$${module}.md; \
@@ -78,6 +77,5 @@ override_dh_installdocs:
 override_dh_compress:
 	dh_compress -Xexamples/
 
-override_dh_auto_clean:
-	dh_auto_clean
+execute_after_dh_auto_clean:
 	rm -rf $(BUILDDIR)

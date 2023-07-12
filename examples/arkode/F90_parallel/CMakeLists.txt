@@ -2,7 +2,7 @@
 # Programmer(s):  Daniel R. Reynolds @ SMU
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -46,7 +46,7 @@ set(FNVECP_LIB sundials_fnvecparallel)
 set(FARKODE_LIB sundials_farkode${_STATIC_LIB_SUFFIX})
 
 # Set-up linker flags and link libraries
-set(SUNDIALS_LIBS ${FARKODE_LIB} ${ARKODE_LIB} ${FNVECP_LIB} ${NVECP_LIB} ${EXTRA_LINK_LIBS})
+set(SUNDIALS_LIBS ${FARKODE_LIB} ${ARKODE_LIB} ${FNVECP_LIB} ${NVECP_LIB} ${EXE_EXTRA_LINK_LIBS})
 
 # Add the build and install targets for each ARKODE example
 foreach(example_tuple ${FARKODE_examples})

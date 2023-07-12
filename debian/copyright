@@ -1,7 +1,14 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: SUNDIALS
 Source: http://computation.llnl.gov/projects/sundials/sundials-software
-Files-Excluded: *.pdf
+Files-Excluded: 
+  *.pdf
+  *.js
+  .clang*
+  .git*
+  .readthedocs.yaml
+  .uberenv*
+  docker
 
 Files: src/cvode/*
        src/cvodes/*
@@ -9,20 +16,19 @@ Files: src/cvode/*
        include/cvodes/*
        examples/cvode/*
        examples/cvodes/*
-Copyright: 2002-2015 Lawrence Livermore National Security
-License: BSD-3-clause-LLNS-additional-notice
-
-Files: examples/cvode/fcmix_serial/fcvRoberts_klu.f
-       examples/cvode/fcmix_serial/fcvRoberts_sps.f
-Copyright: 2016 Southern Methodist University
-License: BSD-3-clause-LLNS-additional-notice
-
-Files: examples/cvode/C_openmp/CMakeLists.txt
-       examples/cvodes/C_openmp/CMakeLists.txt
-       examples/idas/C_openmp/CMakeLists.txt
-       examples/kinsol/C_openmp/CMakeLists.txt
-Copyright: 2013,2015 Southern Methodist University
-           2015 Livermore National Security
+       examples/idas/*
+       examples/ida/*
+       examples/utilities/*
+       doc/*
+       benchmarks/*
+       cmake/*
+       include/*
+       scripts/*
+       swig/*
+       CHANGELOG.md
+       CITATIONS.md
+       CODEOWNERS
+Copyright: 2002-2022 Lawrence Livermore National Security
 License: BSD-3-clause-LLNS-additional-notice
 
 Files: src/ida/*
@@ -30,11 +36,8 @@ Files: src/ida/*
        src/kinsol/*
        include/ida/*
        include/idas/*
-       include/kinsol/*
-       examples/ida/*
-       examples/idas/*
        examples/kinsol/*
-Copyright: 2002-2015 Lawrence Livermore National Security
+Copyright: 2002-2022 Lawrence Livermore National Security
 License: BSD-3-clause-UC-additional-notice
 
 Files: src/arkode/*
@@ -55,33 +58,6 @@ License: BSD-3-clause-SMU
 
 Files: */cmakelists_*
        CMakeLists.txt
-       config/FindHypre.cmake
-       config/FindKLU.cmake
-       config/FindMPI.cmake
-       config/FindPETSc.cmake
-       config/FindSUPERLUMT.cmake
-       config/FindTrilinos.cmake
-       config/SundialsAddF2003InterfaceLibrary.cmake
-       config/SundialsAddTest.cmake
-       config/SundialsAddTestInstall.cmake
-       config/SundialsBlas.cmake
-       config/SundialsCMakeMacros.cmake
-       config/SundialsDeprecated.cmake
-       config/SundialsFortran.cmake
-       config/SundialsHypre.cmake
-       config/SundialsIndexSize.cmake
-       config/SundialsKLU.cmake
-       config/SundialsLapack.cmake
-       config/SundialsMPI.cmake
-       config/SundialsMPIC.cmake
-       config/SundialsMPIF.cmake
-       config/SundialsOpenMP.cmake
-       config/SundialsPETSc.cmake
-       config/SundialsPOSIXTimers.cmake
-       config/SundialsSuperLUMT.cmake
-       config/SundialsTesting.cmake
-       config/SundialsTrilinos.cmake
-       config/SundialsXSDK.cmake
        examples/CMakeLists.txt
        examples/nvector/*
        examples/sunlinsol/*
@@ -121,32 +97,22 @@ Files: */cmakelists_*
        src/sunmatrix/band/*
        src/sunmatrix/dense/*
        src/sunmatrix/sparse/*
+       src/sunmemory/*
        src/sunnonlinsol/*
        src/CMakeLists.txt
        src/nvector/CMakeLists.txt
        src/nvector/openmpdev/*
        src/nvector/trilinos/*
+       src/nvector/*
+       src/sunlinsol/*
+       src/sunmatrix/*
        test/*
 Copyright: 2002-2019 Lawrence Livermore National Security
+           2014 Southern Methodist University
 License: BSD-3-clause-LLNS-additional-notice
 
 Files: include/sundials/sundials_config.in
 Copyright: 2005 The Regents of the University of California
-License: BSD-3-clause-LLNS-additional-notice
-
-Files: src/sundials/sundials_spfgmr.c
-       src/sundials/sundials_pcg.c
-       include/sundials/sundials_spfgmr.h
-       include/sundials/sundials_pcg.h
-Copyright: 2011,2013 Southern Methodist University
-License: BSD-3-clause-LLNS-additional-notice
-
-Files: config/SundialsCXX.cmake
-       config/SundialsFortran90.cmake
-       config/SundialsMPICXX.cmake
-       config/SundialsMPIF90.cmake
-Copyright: 2014 Southern Methodist University
-           2014 Lawrence Livermore National Security
 License: BSD-3-clause-LLNS-additional-notice
 
 Files: debian/*
@@ -155,6 +121,7 @@ Copyright: 2005 Andrey Romanenko <andrey@enginum.com>
            2010-2012 Sylvestre Ledru <sylvestre@debian.org>
            2012-2013 Christophe Trophime <christophe.trophime@lncmi.cnrs.fr>
            2016-2018 Dima Kogan <dkogan@debian.org>
+           2020-2022 Anton Gladky <gladk@debian.org>
 License: BSD-3-clause-LLNS-additional-notice
 
 License: BSD-3-clause-SMU

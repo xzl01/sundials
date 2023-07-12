@@ -1,0 +1,2 @@
+usr/lib/*/libsundials_cvode.so.*
+usr/lib/*/libsundials_fcvode_mod.so.*

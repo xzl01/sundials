@@ -1,0 +1,4 @@
+usr/lib/*/libsundials_nvecparallel.so.*
+usr/lib/*/libsundials_fnvecparallel_mod.so.*
+usr/lib/*/libsundials_nvecmpi*.so.*
+usr/lib/*/libsundials_fnvecmpi*_mod*.so.*

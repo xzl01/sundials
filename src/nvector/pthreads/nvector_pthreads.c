@@ -7,7 +7,7 @@
  *                   @ LLNL
  * -----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2021, Lawrence Livermore National Security
+ * Copyright (c) 2002-2022, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -140,14 +140,15 @@ N_Vector_ID N_VGetVectorID_Pthreads(N_Vector v)
  * Function to create a new empty vector
  */
 
-N_Vector N_VNewEmpty_Pthreads(sunindextype length, int num_threads)
+N_Vector N_VNewEmpty_Pthreads(sunindextype length, int num_threads,
+                              SUNContext sunctx)
 {
   N_Vector v;
   N_VectorContent_Pthreads content;
 
   /* Create an empty vector object */
   v = NULL;
-  v = N_VNewEmpty();
+  v = N_VNewEmpty(sunctx);
   if (v == NULL) return(NULL);
 
   /* Attach operations */
@@ -161,6 +162,7 @@ N_Vector N_VNewEmpty_Pthreads(sunindextype length, int num_threads)
   v->ops->nvgetarraypointer = N_VGetArrayPointer_Pthreads;
   v->ops->nvsetarraypointer = N_VSetArrayPointer_Pthreads;
   v->ops->nvgetlength       = N_VGetLength_Pthreads;
+  v->ops->nvgetlocallength  = N_VGetLength_Pthreads;
 
   /* standard vector operations */
   v->ops->nvlinearsum    = N_VLinearSum_Pthreads;
@@ -196,10 +198,17 @@ N_Vector N_VNewEmpty_Pthreads(sunindextype length, int num_threads)
   v->ops->nvwsqrsumlocal     = N_VWSqrSumLocal_Pthreads;
   v->ops->nvwsqrsummasklocal = N_VWSqrSumMaskLocal_Pthreads;
 
+  /* single buffer reduction operations */
+  v->ops->nvdotprodmultilocal = N_VDotProdMulti_Pthreads;
+
   /* XBraid interface operations */
   v->ops->nvbufsize   = N_VBufSize_Pthreads;
   v->ops->nvbufpack   = N_VBufPack_Pthreads;
   v->ops->nvbufunpack = N_VBufUnpack_Pthreads;
+
+  /* debugging functions */
+  v->ops->nvprint     = N_VPrint_Pthreads;
+  v->ops->nvprintfile = N_VPrintFile_Pthreads;
 
   /* Create content */
   content = NULL;
@@ -222,13 +231,14 @@ N_Vector N_VNewEmpty_Pthreads(sunindextype length, int num_threads)
  * Function to create a new vector
  */
 
-N_Vector N_VNew_Pthreads(sunindextype length, int num_threads)
+N_Vector N_VNew_Pthreads(sunindextype length, int num_threads,
+                         SUNContext sunctx)
 {
   N_Vector v;
   realtype *data;
 
   v = NULL;
-  v = N_VNewEmpty_Pthreads(length, num_threads);
+  v = N_VNewEmpty_Pthreads(length, num_threads, sunctx);
   if (v == NULL) return(NULL);
 
   /* Create data */
@@ -252,12 +262,13 @@ N_Vector N_VNew_Pthreads(sunindextype length, int num_threads)
  * Function to create a vector with user data component
  */
 
-N_Vector N_VMake_Pthreads(sunindextype length, int num_threads, realtype *v_data)
+N_Vector N_VMake_Pthreads(sunindextype length, int num_threads,
+                          realtype *v_data, SUNContext sunctx)
 {
   N_Vector v;
 
   v = NULL;
-  v = N_VNewEmpty_Pthreads(length, num_threads);
+  v = N_VNewEmpty_Pthreads(length, num_threads, sunctx);
   if (v == NULL) return(NULL);
 
   if (length > 0) {
@@ -275,25 +286,7 @@ N_Vector N_VMake_Pthreads(sunindextype length, int num_threads, realtype *v_data
 
 N_Vector* N_VCloneVectorArray_Pthreads(int count, N_Vector w)
 {
-  N_Vector* vs;
-  int j;
-
-  if (count <= 0) return(NULL);
-
-  vs = NULL;
-  vs = (N_Vector*) malloc(count * sizeof(N_Vector));
-  if(vs == NULL) return(NULL);
-
-  for (j = 0; j < count; j++) {
-    vs[j] = NULL;
-    vs[j] = N_VClone_Pthreads(w);
-    if (vs[j] == NULL) {
-      N_VDestroyVectorArray_Pthreads(vs, j-1);
-      return(NULL);
-    }
-  }
-
-  return(vs);
+  return(N_VCloneVectorArray(count, w));
 }
 
 /* ----------------------------------------------------------------------------
@@ -302,25 +295,7 @@ N_Vector* N_VCloneVectorArray_Pthreads(int count, N_Vector w)
 
 N_Vector* N_VCloneVectorArrayEmpty_Pthreads(int count, N_Vector w)
 {
-  N_Vector* vs;
-  int j;
-
-  if (count <= 0) return(NULL);
-
-  vs = NULL;
-  vs = (N_Vector*) malloc(count * sizeof(N_Vector));
-  if(vs == NULL) return(NULL);
-
-  for (j = 0; j < count; j++) {
-    vs[j] = NULL;
-    vs[j] = N_VCloneEmpty_Pthreads(w);
-    if (vs[j] == NULL) {
-      N_VDestroyVectorArray_Pthreads(vs, j-1);
-      return(NULL);
-    }
-  }
-
-  return(vs);
+  return(N_VCloneEmptyVectorArray(count, w));
 }
 
 /* ----------------------------------------------------------------------------
@@ -329,12 +304,7 @@ N_Vector* N_VCloneVectorArrayEmpty_Pthreads(int count, N_Vector w)
 
 void N_VDestroyVectorArray_Pthreads(N_Vector* vs, int count)
 {
-  int j;
-
-  for (j = 0; j < count; j++) N_VDestroy_Pthreads(vs[j]);
-
-  free(vs); vs = NULL;
-
+  N_VDestroyVectorArray(vs, count);
   return;
 }
 
@@ -402,7 +372,7 @@ N_Vector N_VCloneEmpty_Pthreads(N_Vector w)
 
   /* Create vector */
   v = NULL;
-  v = N_VNewEmpty();
+  v = N_VNewEmpty(w->sunctx);
   if (v == NULL) return(NULL);
 
   /* Attach operations */
@@ -5306,7 +5276,7 @@ static void N_VInitThreadData(Pthreads_Data *thread_data)
   thread_data->start = -1;
   thread_data->end   = -1;
 
-#if __STDC_VERSION__ >= 199901L
+#ifdef NAN
   thread_data->c1 = NAN;
   thread_data->c2 = NAN;
 #else
@@ -5356,6 +5326,8 @@ int N_VEnableFusedOps_Pthreads(N_Vector v, booleantype tf)
     v->ops->nvwrmsnormmaskvectorarray      = N_VWrmsNormMaskVectorArray_Pthreads;
     v->ops->nvscaleaddmultivectorarray     = N_VScaleAddMultiVectorArray_Pthreads;
     v->ops->nvlinearcombinationvectorarray = N_VLinearCombinationVectorArray_Pthreads;
+    /* enable single buffer reduction operations */
+    v->ops->nvdotprodmultilocal = N_VDotProdMulti_Pthreads;
   } else {
     /* disable all fused vector operations */
     v->ops->nvlinearcombination = NULL;
@@ -5369,6 +5341,8 @@ int N_VEnableFusedOps_Pthreads(N_Vector v, booleantype tf)
     v->ops->nvwrmsnormmaskvectorarray      = NULL;
     v->ops->nvscaleaddmultivectorarray     = NULL;
     v->ops->nvlinearcombinationvectorarray = NULL;
+    /* enable single buffer reduction operations */
+    v->ops->nvdotprodmultilocal = NULL;
   }
 
   /* return success */
@@ -5421,10 +5395,13 @@ int N_VEnableDotProdMulti_Pthreads(N_Vector v, booleantype tf)
   if (v->ops == NULL) return(-1);
 
   /* enable/disable operation */
-  if (tf)
-    v->ops->nvdotprodmulti = N_VDotProdMulti_Pthreads;
-  else
-    v->ops->nvdotprodmulti = NULL;
+  if (tf) {
+    v->ops->nvdotprodmulti      = N_VDotProdMulti_Pthreads;
+    v->ops->nvdotprodmultilocal = N_VDotProdMulti_Pthreads;
+  } else {
+    v->ops->nvdotprodmulti      = NULL;
+    v->ops->nvdotprodmultilocal = NULL;
+  }
 
   /* return success */
   return(0);

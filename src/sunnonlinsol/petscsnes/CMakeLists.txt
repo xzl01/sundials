@@ -2,7 +2,7 @@
 # Programmer(s): Cody J. Balos @ LLNL
 # ------------------------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -34,7 +34,7 @@ sundials_add_library(sundials_sunnonlinsolpetscsnes
   OBJECT_LIBRARIES
     sundials_generic_obj
   LINK_LIBRARIES
-    PUBLIC sundials_nvecpetsc SUNDIALS::PETSC_SNES
+    PUBLIC sundials_nvecpetsc SUNDIALS::PETSC
   OUTPUT_NAME
     sundials_sunnonlinsolpetscsnes
   VERSION

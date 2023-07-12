@@ -1,3 +1,41 @@
+sundials (6.4.1+dfsg1-3) unstable; urgency=medium
+
+  * [855a1dc] Fix version in Breaks+Replaces. (Closes: #1027402)
+  * [cf0d84c] Fix lintian warning
+  * [506163a] Simplify d/salsa-ci.yml
+
+ -- Anton Gladky <gladk@debian.org>  Sat, 31 Dec 2022 17:55:32 +0100
+
+sundials (6.4.1+dfsg1-2) unstable; urgency=medium
+
+  * [cc5fc23] Rename libsundials-nvecparallel-mpi4 to ..-mpi6.
+              (Closes: #1026352)
+  * [4d03963] allow-stderr in autopkgtest. (Closes: #1026330)
+
+ -- Anton Gladky <gladk@debian.org>  Tue, 27 Dec 2022 23:21:00 +0100
+
+sundials (6.4.1+dfsg1-1) unstable; urgency=medium
+
+  * [ca149c2] Install some more headers
+  * [c08e62d] Set Standards-Version to 4.6.1
+
+ -- Anton Gladky <gladk@debian.org>  Wed, 07 Dec 2022 21:45:05 +0100
+
+sundials (6.4.1+dfsg1-1~exp2) experimental; urgency=medium
+
+  * [4f92963] Update patches
+
+ -- Anton Gladky <gladk@debian.org>  Wed, 16 Nov 2022 18:05:45 +0100
+
+sundials (6.4.1+dfsg1-1~exp1) experimental; urgency=medium
+
+  * [a55cf34] New upstream version 6.4.1+dfsg1
+  * [648382e] Update patches
+  * [b403d7d] Update d/copyright
+  * [a4bd93c] Update binary package names
+
+ -- Anton Gladky <gladk@debian.org>  Tue, 08 Nov 2022 19:54:05 +0100
+
 sundials (5.8.0+dfsg-1) unstable; urgency=medium
 
   * [d4636af] Add simple autopkgtest

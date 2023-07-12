@@ -3,7 +3,7 @@
  * Programmer(s): Daniel Reynolds @ SMU
  * -----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2021, Lawrence Livermore National Security
+ * Copyright (c) 2002-2022, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -38,13 +38,19 @@ int main(int argc, char *argv[])
   SUNLinearSolver LS;                 /* solver object              */
   SUNMatrix       A, B;               /* test matrices              */
   N_Vector        x, y, b;            /* test vectors               */
-  int             print_timing;
+  int             print_timing, print_matrix_on_fail;
   sunindextype    j, k, kstart, kend;
   realtype        *colj, *xdata;
+  SUNContext      sunctx;
+
+  if (SUNContext_Create(NULL, &sunctx)) {
+    printf("ERROR: SUNContext_Create failed\n");
+    return(-1);
+  }
 
   /* check input and set matrix dimensions */
-  if (argc < 5){
-    printf("ERROR: FOUR (4) Inputs required: matrix cols, matrix uband, matrix lband, print timing \n");
+  if (argc < 6){
+    printf("ERROR: FIVE (5) Inputs required: matrix cols, matrix uband, matrix lband, print matrix on fail, print timing \n");
     return(-1);
   }
 
@@ -66,18 +72,20 @@ int main(int argc, char *argv[])
     return(-1);
   }
 
-  print_timing = atoi(argv[4]);
+  print_matrix_on_fail = atoi(argv[4]);
+
+  print_timing = atoi(argv[5]);
   SetTiming(print_timing);
 
   printf("\nLapackBand linear solver test: size %ld, bandwidths %ld %ld\n\n",
          (long int) cols, (long int) uband, (long int) lband);
 
   /* Create matrices and vectors */
-  A = SUNBandMatrix(cols, uband, lband);
-  B = SUNBandMatrix(cols, uband, lband);
-  x = N_VNew_Serial(cols);
-  y = N_VNew_Serial(cols);
-  b = N_VNew_Serial(cols);
+  A = SUNBandMatrix(cols, uband, lband, sunctx);
+  B = SUNBandMatrix(cols, uband, lband, sunctx);
+  x = N_VNew_Serial(cols, sunctx);
+  y = N_VNew_Serial(cols, sunctx);
+  b = N_VNew_Serial(cols, sunctx);
 
   /* Fill matrix and x vector with uniform random data in [0,1] */
   xdata = N_VGetArrayPointer(x);
@@ -114,7 +122,7 @@ int main(int argc, char *argv[])
   }
 
   /* Create banded linear solver */
-  LS = SUNLinSol_LapackBand(x, A);
+  LS = SUNLinSol_LapackBand(x, A, sunctx);
 
   /* Run Tests */
   fails += Test_SUNLinSolInitialize(LS, 0);
@@ -129,14 +137,19 @@ int main(int argc, char *argv[])
   /* Print result */
   if (fails) {
     printf("FAIL: SUNLinSol module failed %i tests \n \n", fails);
-    printf("\nA (original) =\n");
-    SUNBandMatrix_Print(B,stdout);
-    printf("\nA (factored) =\n");
-    SUNBandMatrix_Print(A,stdout);
-    printf("\nx (original) =\n");
+    printf("\nanswer =\n");
     N_VPrint_Serial(y);
-    printf("\nx (computed) =\n");
+    printf("\ncomputed =\n");
     N_VPrint_Serial(x);
+    printf("\ndiff (answer-computed) =\n");
+    N_VLinearSum_Serial(SUN_RCONST(1.0), y, -SUN_RCONST(1.0), x, x);
+    N_VPrint_Serial(x);
+    if (print_matrix_on_fail) {
+      printf("\nA (original) =\n");
+      SUNBandMatrix_Print(B,stdout);
+      printf("\nA (factored) =\n");
+      SUNBandMatrix_Print(A,stdout);
+    }
   } else {
     printf("SUCCESS: SUNLinSol module passed all tests \n \n");
   }
@@ -148,6 +161,8 @@ int main(int argc, char *argv[])
   N_VDestroy(x);
   N_VDestroy(y);
   N_VDestroy(b);
+
+  SUNContext_Free(&sunctx);
 
   return(fails);
 }

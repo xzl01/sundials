@@ -2,7 +2,7 @@
 # Programmer(s): Slaven Peles and Cody J. Balos @ LLNL
 # ---------------------------------------------------------------
 # SUNDIALS Copyright Start
-# Copyright (c) 2002-2021, Lawrence Livermore National Security
+# Copyright (c) 2002-2022, Lawrence Livermore National Security
 # and Southern Methodist University.
 # All rights reserved.
 #
@@ -20,12 +20,12 @@ if(SUNDIALS_RAJA_BACKENDS MATCHES "CUDA")
   set(_sunmemlib sundials_sunmemcuda_obj)
   set(_lib_output_name sundials_nveccudaraja)
   set_source_files_properties(nvector_raja.cpp PROPERTIES LANGUAGE CUDA)
-  set(_cxx_std cxx_std_11)
+  set(_cxx_std cxx_std_14)
 elseif(SUNDIALS_RAJA_BACKENDS MATCHES "HIP")
   set(_sunmemlib sundials_sunmemhip_obj)
   set(_lib_output_name sundials_nvechipraja)
   set(_hip_lib_or_not hip::device)
-  set(_cxx_std cxx_std_11)
+  set(_cxx_std cxx_std_14)
 elseif(SUNDIALS_RAJA_BACKENDS MATCHES "SYCL")
   set(_sunmemlib sundials_sunmemsycl_obj)
   set(_lib_output_name sundials_nvecsyclraja)
